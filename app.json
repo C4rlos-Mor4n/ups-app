@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "temp-app",
-    "slug": "temp-app",
+    "name": "UPS ExpresosApp",
+    "slug": "ups-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "tempapp",
+    "scheme": "upsapp",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
@@ -18,7 +18,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.c4rlosmor4n.tempapp"
+      "package": "com.c4rlosmor4n.upsapp"
     },
     "web": {
       "output": "static",
@@ -43,7 +43,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "778d71be-4912-4840-81b5-ec1ba3be15e6"
+        "projectId": "658e70ee-b548-4ff8-8319-6d55830b5178"
       }
     },
     "owner": "c4rlosmor4n"
