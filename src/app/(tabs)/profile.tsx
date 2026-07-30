@@ -1,136 +1,194 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useAuth } from '../../context/auth';
-import { colors } from '../../theme/colors';
-import { LogOut, User, Mail, Shield } from 'lucide-react-native';
+import { colors, spacing, radii } from '../../theme';
+import { User, Mail, Shield, LogOut, Info } from 'lucide-react-native';
+import { AppScreen, AppText, AppCard, AppButton } from '../../components/ui';
+
+// Traductor de roles
+const translateRole = (role: string | undefined) => {
+  if (!role) return 'Usuario';
+  const map: Record<string, string> = {
+    STUDENT: 'Estudiante',
+    TEACHER: 'Docente',
+    ADMIN: 'Administrador',
+    SUPER_ADMIN: 'Superadministrador',
+  };
+  return map[role.toUpperCase()] || role;
+};
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
 
+  const handleLogout = () => {
+    Alert.alert(
+      '¿Cerrar sesión?',
+      'Tendrás que volver a ingresar con tu correo institucional.',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Cerrar sesión',
+          style: 'destructive',
+          onPress: logout,
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.avatar}>
-          <User size={48} color={colors.surfaceLight} />
-        </View>
-        <Text style={styles.name}>{user?.name || 'Estudiante UPS'}</Text>
-        <Text style={styles.role}>{user?.role === 'STUDENT' ? 'Estudiante' : user?.role}</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Información de la cuenta</Text>
+    <AppScreen safeAreaEdges={['top', 'left', 'right']} backgroundColor={colors.backgroundMain}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        <View style={styles.infoRow}>
-          <Mail color={colors.textLight} size={20} />
-          <View style={styles.infoTextContainer}>
-            <Text style={styles.infoLabel}>Correo Electrónico</Text>
-            <Text style={styles.infoValue}>{user?.email}</Text>
-          </View>
+        <View style={styles.header}>
+          <AppText variant="headingL" weight="bold" color="primary">
+            Perfil
+          </AppText>
         </View>
 
-        <View style={styles.infoRow}>
-          <Shield color={colors.textLight} size={20} />
-          <View style={styles.infoTextContainer}>
-            <Text style={styles.infoLabel}>Estado</Text>
-            <Text style={[styles.infoValue, { color: user?.isActive ? colors.success : colors.error }]}>
-              {user?.isActive ? 'Activo' : 'Inactivo'}
-            </Text>
+        <AppCard style={styles.profileCard}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatar}>
+              <User size={48} color={colors.surface} />
+            </View>
+            <AppText variant="headingM" weight="bold" color="primary" style={styles.nameText}>
+              {user?.name || 'Usuario UPS'}
+            </AppText>
+            <AppText variant="bodyS" color="brandPrimary" weight="medium" style={styles.roleBadge}>
+              {translateRole(user?.role)}
+            </AppText>
           </View>
-        </View>
-      </View>
+        </AppCard>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-        <LogOut color={colors.error} size={20} />
-        <Text style={styles.logoutText}>Cerrar Sesión</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <AppText variant="label" weight="bold" color="secondary" style={styles.sectionTitle}>
+          INFORMACIÓN DE LA CUENTA
+        </AppText>
+        
+        <AppCard style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <Mail color={colors.textSecondary} size={20} />
+            <View style={styles.infoTextContainer}>
+              <AppText variant="caption" color="secondary">Correo Institucional</AppText>
+              <AppText variant="bodyM" weight="medium" color="primary">{user?.email}</AppText>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.infoRow}>
+            <Shield color={colors.textSecondary} size={20} />
+            <View style={styles.infoTextContainer}>
+              <AppText variant="caption" color="secondary">Estado de Cuenta</AppText>
+              <AppText 
+                variant="bodyM" 
+                weight="medium" 
+                color={user?.isActive ? 'success' : 'error'}
+              >
+                {user?.isActive ? 'Activo' : 'Inactivo'}
+              </AppText>
+            </View>
+          </View>
+        </AppCard>
+
+        <AppText variant="label" weight="bold" color="secondary" style={styles.sectionTitle}>
+          SISTEMA
+        </AppText>
+
+        <AppCard style={styles.infoCard}>
+          <View style={[styles.infoRow, styles.infoRowNoBorder]}>
+            <Info color={colors.textSecondary} size={20} />
+            <View style={styles.infoTextContainer}>
+              <AppText variant="caption" color="secondary">Versión de la aplicación</AppText>
+              <AppText variant="bodyM" weight="medium" color="primary">1.0.0</AppText>
+            </View>
+          </View>
+        </AppCard>
+
+        <View style={styles.logoutContainer}>
+          <AppButton 
+            label="Cerrar sesión" 
+            variant="outline" 
+            onPress={handleLogout}
+            leftIcon={<LogOut color={colors.error} size={20} />}
+            style={styles.logoutButton}
+          />
+        </View>
+
+      </ScrollView>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
+  scrollContent: {
+    padding: spacing.lg,
+    paddingBottom: spacing.massive,
   },
   header: {
+    marginBottom: spacing.xl,
+  },
+  profileCard: {
+    marginBottom: spacing.xxl,
     alignItems: 'center',
-    padding: 32,
-    backgroundColor: colors.surfaceLight,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingVertical: spacing.xxl,
+  },
+  avatarContainer: {
+    alignItems: 'center',
   },
   avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: colors.primary,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.brandPrimary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 4,
+  nameText: {
+    marginBottom: spacing.xs,
   },
-  role: {
-    fontSize: 16,
-    color: colors.secondary,
-    fontWeight: '600',
-  },
-  section: {
-    backgroundColor: colors.surfaceLight,
-    marginTop: 24,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.border,
+  roleBadge: {
+    backgroundColor: colors.infoBackground,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radii.sm,
+    overflow: 'hidden',
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.textLight,
-    textTransform: 'uppercase',
-    paddingHorizontal: 24,
-    marginBottom: 16,
+    marginBottom: spacing.sm,
+    marginLeft: spacing.xs,
     letterSpacing: 1,
+  },
+  infoCard: {
+    padding: 0,
+    marginBottom: spacing.xxl,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.background,
+    padding: spacing.lg,
+  },
+  infoRowNoBorder: {
+    borderBottomWidth: 0,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.borderLight,
+    marginLeft: spacing.xxxl + spacing.lg,
   },
   infoTextContainer: {
-    marginLeft: 16,
+    marginLeft: spacing.md,
   },
-  infoLabel: {
-    fontSize: 12,
-    color: colors.textLight,
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: 16,
-    color: colors.text,
+  logoutContainer: {
+    marginTop: spacing.xl,
+    alignItems: 'center',
   },
   logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceLight,
-    marginTop: 32,
-    padding: 16,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.border,
-  },
-  logoutText: {
-    color: colors.error,
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
+    borderColor: colors.error,
+    borderWidth: 1,
+    minWidth: 200,
+  }
 });

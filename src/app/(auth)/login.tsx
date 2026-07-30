@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Mail } from 'lucide-react-native';
 import { apiClient } from '../../api/client';
-import { colors } from '../../theme/colors';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
+import { colors, spacing } from '../../theme';
+import { AppScreen, AppButton, AppTextField, AppText } from '../../components/ui';
+import { AuthBrandHeader } from '../../components/auth/AuthBrandHeader';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -12,117 +13,102 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const router = useRouter();
 
+  const validateEmail = (text: string) => {
+    // Basic format validation + domain check based on requirements
+    if (!text.includes('@')) return false;
+    return true;
+  };
+
   const handleRequestCode = async () => {
-    if (!email) return;
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail || !validateEmail(trimmedEmail)) {
+      setError('Por favor, ingresa un correo institucional válido.');
+      return;
+    }
+    
     setLoading(true);
     setError('');
+    
     try {
-      await apiClient.post('/auth/request-code', { email });
-      router.push({ pathname: '/(auth)/verify', params: { email } });
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message || 'Error al solicitar el código');
-      } else {
-        setError('Error al solicitar el código');
-      }
+      await apiClient.post('/auth/request-code', { email: trimmedEmail });
+      router.push({ pathname: '/(auth)/verify', params: { email: trimmedEmail } });
+    } catch (err: any) {
+      // Map technical errors to user-friendly messages
+      setError('No pudimos enviar el código. Verifica tu correo o conexión e intenta de nuevo.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Image 
-          source={require('../../../assets/images/icon.png')} 
-          style={styles.logo} 
-          contentFit="contain" 
-        />
-        <Text style={styles.title}>Expresos UPS</Text>
-        <Text style={styles.subtitle}>Ingresa tu correo institucional para comenzar</Text>
-        
-        <TextInput
-          style={styles.input}
-          placeholder="estudiante@est.ups.edu.ec"
-          placeholderTextColor={colors.textLight}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-
-        <TouchableOpacity 
-          style={styles.button} 
-          onPress={handleRequestCode}
-          disabled={loading || !email}
+    <AppScreen backgroundColor={colors.backgroundMain}>
+      <KeyboardAvoidingView 
+        style={styles.keyboardView} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          keyboardShouldPersistTaps="handled"
         >
-          {loading ? (
-            <ActivityIndicator color={colors.surfaceLight} />
-          ) : (
-            <Text style={styles.buttonText}>Solicitar Código</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          <AuthBrandHeader 
+            title="Tu transporte universitario, más simple"
+            subtitle="Ingresa con tu cuenta UPS para continuar"
+          />
+          
+          <View style={styles.formContainer}>
+            <AppTextField
+              label="Correo institucional"
+              placeholder="usuario@est.ups.edu.ec"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                setError('');
+              }}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              textContentType="emailAddress"
+              leftIcon={<Mail size={20} color={colors.textSecondary} />}
+              error={error}
+              onSubmitEditing={handleRequestCode}
+              returnKeyType="send"
+            />
+            
+            <View style={styles.infoTextContainer}>
+              <AppText variant="caption" color="secondary" align="center">
+                Te enviaremos un código de seguridad de 6 dígitos a tu bandeja de entrada.
+              </AppText>
+            </View>
+
+            <AppButton 
+              label="Enviar código" 
+              onPress={handleRequestCode}
+              loading={loading}
+              disabled={!email || loading}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  keyboardView: {
     flex: 1,
-    backgroundColor: colors.background,
   },
-  content: {
-    flex: 1,
-    padding: 24,
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
+    padding: spacing.xxl,
   },
-  logo: {
-    width: 120,
-    height: 120,
+  formContainer: {
+    width: '100%',
+    maxWidth: 400,
     alignSelf: 'center',
-    marginBottom: 24,
-    borderRadius: 24,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: colors.primary,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.text,
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  input: {
-    backgroundColor: colors.surfaceLight,
-    padding: 16,
-    borderRadius: 12,
-    fontSize: 16,
-    color: colors.text,
-    marginBottom: 16,
-    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-  },
-  button: {
-    backgroundColor: colors.button,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonText: {
-    color: colors.surfaceLight,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  error: {
-    color: colors.error,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
+  infoTextContainer: {
+    marginBottom: spacing.xxl,
+    paddingHorizontal: spacing.sm,
+  }
 });

@@ -1,20 +1,25 @@
 import { Stack } from 'expo-router';
-import { colors } from '../../../theme/colors';
+import { colors, typography } from '../../../theme';
 
 export default function RoutesLayout() {
   return (
-    <Stack screenOptions={{
-      headerStyle: { backgroundColor: colors.primary },
-      headerTintColor: colors.surfaceLight,
-      headerTitleStyle: { fontWeight: 'bold' },
-    }}>
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.brandPrimary },
+        headerTintColor: colors.surface,
+        headerTitleStyle: { 
+          fontFamily: typography.fontFamily.bold,
+          fontSize: typography.sizes.headingM
+        },
+      }}
+    >
       <Stack.Screen 
         name="index" 
-        options={{ title: 'Rutas Disponibles' }} 
+        options={{ headerShown: false }} 
       />
       <Stack.Screen 
         name="[id]" 
-        options={{ title: 'Detalle de Ruta' }} 
+        options={{ headerShown: false }} 
       />
     </Stack>
   );
